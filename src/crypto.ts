@@ -48,10 +48,24 @@ export async function verifySignature(
 }
 
 /**
- * Hash a soul document for signing
+ * Recursively sort object keys for canonical JSON
+ */
+function sortObjectKeys(obj: unknown): unknown {
+  if (obj === null || typeof obj !== 'object') return obj;
+  if (Array.isArray(obj)) return obj.map(sortObjectKeys);
+  const sorted: Record<string, unknown> = {};
+  Object.keys(obj as Record<string, unknown>).sort().forEach(key => {
+    sorted[key] = sortObjectKeys((obj as Record<string, unknown>)[key]);
+  });
+  return sorted;
+}
+
+/**
+ * Hash a soul document for signing (canonical JSON with sorted keys)
  */
 export function hashSoulDocument(doc: object): string {
-  const canonical = JSON.stringify(doc, Object.keys(doc).sort());
+  const sorted = sortObjectKeys(doc);
+  const canonical = JSON.stringify(sorted);
   const hash = sha512(new TextEncoder().encode(canonical));
   return Buffer.from(hash).toString('hex');
 }

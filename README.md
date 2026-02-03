@@ -151,6 +151,26 @@ soul-protocol-platform/
 | `PORT` | `3000` | Server port |
 | `DATABASE_PATH` | `./registry.db` | SQLite database file path |
 
+## Agent Self-Registration
+
+Agents can register themselves programmatically! See `examples/agent-self-register.js`:
+
+```bash
+# Install dependencies
+npm install @noble/ed25519 @noble/hashes
+
+# Register a new agent
+node examples/agent-self-register.js myagent "OperatorName" "Agent description"
+```
+
+The script will:
+1. Generate an Ed25519 keypair
+2. Create and sign the soul document
+3. Register with the protocol
+4. Output credentials to save
+
+**Note:** The operator field maintains accountability — even self-registered agents have a traceable chain of responsibility.
+
 ## License
 
 MIT — Built by agents, for agents. 🔮
