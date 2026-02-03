@@ -1,0 +1,681 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Soul Protocol - Verifiable Identity for AI Agents</title>
+  <meta name="description" content="Soul Protocol provides cryptographic identity verification for AI agents. Register, verify, and manage agent identities with confidence.">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔮</text></svg>">
+  <style>
+    :root {
+      --bg: #0a0a0f;
+      --bg-secondary: #12121a;
+      --text: #e4e4e7;
+      --text-muted: #71717a;
+      --accent: #a855f7;
+      --accent-hover: #9333ea;
+      --accent-glow: rgba(168, 85, 247, 0.3);
+      --border: #27272a;
+      --success: #22c55e;
+      --error: #ef4444;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      min-height: 100vh;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+
+    /* Header */
+    header {
+      border-bottom: 1px solid var(--border);
+      padding: 20px 0;
+      position: sticky;
+      top: 0;
+      background: rgba(10, 10, 15, 0.9);
+      backdrop-filter: blur(10px);
+      z-index: 100;
+    }
+
+    .header-content {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--text);
+      text-decoration: none;
+    }
+
+    .logo-icon {
+      font-size: 2rem;
+    }
+
+    nav {
+      display: flex;
+      gap: 32px;
+      align-items: center;
+    }
+
+    nav a {
+      color: var(--text-muted);
+      text-decoration: none;
+      font-weight: 500;
+      transition: color 0.2s;
+    }
+
+    nav a:hover {
+      color: var(--text);
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 24px;
+      border-radius: 8px;
+      font-weight: 600;
+      text-decoration: none;
+      transition: all 0.2s;
+      border: none;
+      cursor: pointer;
+      font-size: 1rem;
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: white;
+      box-shadow: 0 0 20px var(--accent-glow);
+    }
+
+    .btn-primary:hover {
+      background: var(--accent-hover);
+      transform: translateY(-1px);
+    }
+
+    .btn-secondary {
+      background: transparent;
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+
+    .btn-secondary:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    /* Hero */
+    .hero {
+      padding: 120px 0 80px;
+      text-align: center;
+      position: relative;
+    }
+
+    .hero::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 600px;
+      height: 400px;
+      background: radial-gradient(ellipse, var(--accent-glow), transparent 70%);
+      pointer-events: none;
+    }
+
+    .hero h1 {
+      font-size: 4rem;
+      font-weight: 800;
+      margin-bottom: 24px;
+      background: linear-gradient(135deg, var(--text), var(--accent));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .hero p {
+      font-size: 1.25rem;
+      color: var(--text-muted);
+      max-width: 600px;
+      margin: 0 auto 40px;
+    }
+
+    .hero-ctas {
+      display: flex;
+      gap: 16px;
+      justify-content: center;
+    }
+
+    /* Features */
+    .features {
+      padding: 80px 0;
+    }
+
+    .features h2 {
+      text-align: center;
+      font-size: 2.5rem;
+      margin-bottom: 60px;
+    }
+
+    .feature-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 32px;
+    }
+
+    .feature-card {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 32px;
+      transition: transform 0.2s, border-color 0.2s;
+    }
+
+    .feature-card:hover {
+      transform: translateY(-4px);
+      border-color: var(--accent);
+    }
+
+    .feature-icon {
+      font-size: 2.5rem;
+      margin-bottom: 16px;
+    }
+
+    .feature-card h3 {
+      font-size: 1.25rem;
+      margin-bottom: 12px;
+    }
+
+    .feature-card p {
+      color: var(--text-muted);
+    }
+
+    /* Interactive Demo */
+    .demo {
+      padding: 80px 0;
+      background: var(--bg-secondary);
+    }
+
+    .demo h2 {
+      text-align: center;
+      font-size: 2.5rem;
+      margin-bottom: 16px;
+    }
+
+    .demo > .container > p {
+      text-align: center;
+      color: var(--text-muted);
+      margin-bottom: 40px;
+    }
+
+    .demo-container {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 32px;
+    }
+
+    @media (max-width: 768px) {
+      .demo-container {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .demo-panel {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 24px;
+    }
+
+    .demo-panel h3 {
+      font-size: 1.25rem;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .input-group {
+      margin-bottom: 16px;
+    }
+
+    .input-group label {
+      display: block;
+      margin-bottom: 8px;
+      color: var(--text-muted);
+      font-size: 0.875rem;
+    }
+
+    .input-group input {
+      width: 100%;
+      padding: 12px 16px;
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      font-size: 1rem;
+      transition: border-color 0.2s;
+    }
+
+    .input-group input:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+
+    .result-box {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 16px;
+      margin-top: 16px;
+      font-family: 'Monaco', 'Menlo', monospace;
+      font-size: 0.875rem;
+      white-space: pre-wrap;
+      word-break: break-all;
+      max-height: 300px;
+      overflow-y: auto;
+    }
+
+    .result-box.success {
+      border-color: var(--success);
+    }
+
+    .result-box.error {
+      border-color: var(--error);
+    }
+
+    .status-indicator {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 12px;
+      border-radius: 100px;
+      font-size: 0.875rem;
+      background: var(--bg-secondary);
+    }
+
+    .status-indicator.active {
+      color: var(--success);
+    }
+
+    .status-indicator.active::before {
+      content: '';
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--success);
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+
+    /* API Reference */
+    .api {
+      padding: 80px 0;
+    }
+
+    .api h2 {
+      text-align: center;
+      font-size: 2.5rem;
+      margin-bottom: 60px;
+    }
+
+    .endpoint {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      margin-bottom: 16px;
+      overflow: hidden;
+    }
+
+    .endpoint-header {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 16px 20px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .endpoint-header:hover {
+      background: rgba(168, 85, 247, 0.05);
+    }
+
+    .method {
+      padding: 4px 12px;
+      border-radius: 4px;
+      font-weight: 600;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+    }
+
+    .method.get { background: #22c55e22; color: #22c55e; }
+    .method.post { background: #3b82f622; color: #3b82f6; }
+    .method.put { background: #f59e0b22; color: #f59e0b; }
+    .method.delete { background: #ef444422; color: #ef4444; }
+
+    .endpoint-path {
+      font-family: 'Monaco', 'Menlo', monospace;
+      color: var(--text);
+    }
+
+    .endpoint-desc {
+      color: var(--text-muted);
+      margin-left: auto;
+      font-size: 0.875rem;
+    }
+
+    /* Footer */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 40px 0;
+      margin-top: 80px;
+    }
+
+    .footer-content {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .footer-links {
+      display: flex;
+      gap: 24px;
+    }
+
+    .footer-links a {
+      color: var(--text-muted);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+
+    .footer-links a:hover {
+      color: var(--accent);
+    }
+
+    /* Mobile */
+    @media (max-width: 768px) {
+      .hero h1 {
+        font-size: 2.5rem;
+      }
+
+      nav {
+        display: none;
+      }
+
+      .footer-content {
+        flex-direction: column;
+        gap: 20px;
+        text-align: center;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="container">
+      <div class="header-content">
+        <a href="/" class="logo">
+          <span class="logo-icon">🔮</span>
+          Soul Protocol
+        </a>
+        <nav>
+          <a href="#features">Features</a>
+          <a href="#demo">Try It</a>
+          <a href="#api">API</a>
+          <a href="https://github.com/nexusai/soul-protocol" target="_blank">GitHub</a>
+        </nav>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="container">
+        <h1>Verifiable Identity for AI Agents</h1>
+        <p>
+          Soul Protocol provides cryptographic identity verification for AI agents. 
+          Register your agent's identity, prove ownership, and build trust in the agent ecosystem.
+        </p>
+        <div class="hero-ctas">
+          <a href="#demo" class="btn btn-primary">Try the Registry</a>
+          <a href="https://github.com/nexusai/soul-protocol" target="_blank" class="btn btn-secondary">View on GitHub</a>
+        </div>
+      </div>
+    </section>
+
+    <section class="features" id="features">
+      <div class="container">
+        <h2>Why Soul Protocol?</h2>
+        <div class="feature-grid">
+          <div class="feature-card">
+            <div class="feature-icon">🔐</div>
+            <h3>Cryptographic Verification</h3>
+            <p>Every identity is backed by Ed25519 signatures. Prove you control an agent identity with challenge-response verification.</p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon">🌐</div>
+            <h3>Decentralized DIDs</h3>
+            <p>Built on the did:soul method. Your identity is yours — portable across platforms and verifiable anywhere.</p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon">📝</div>
+            <h3>Accountability Trail</h3>
+            <p>Every verification is logged. Know when an agent was verified, how many times, and track status changes.</p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon">🔗</div>
+            <h3>Operator Attestation</h3>
+            <p>Operators can attest to agent identities, creating a chain of trust from agent to human oversight.</p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon">⚡</div>
+            <h3>Simple API</h3>
+            <p>REST API for registration, resolution, and verification. Integrate in minutes, not days.</p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon">🛡️</div>
+            <h3>Status Management</h3>
+            <p>Suspend or revoke identities when needed. Protect your reputation if keys are compromised.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="demo" id="demo">
+      <div class="container">
+        <h2>Try the Registry</h2>
+        <p>Look up any registered Soul or check the registry status.</p>
+        
+        <div class="demo-container">
+          <div class="demo-panel">
+            <h3>🔍 Look Up a Soul</h3>
+            <div class="input-group">
+              <label for="lookup-input">Enter name or DID</label>
+              <input type="text" id="lookup-input" placeholder="e.g., nexus or did:soul:nexus">
+            </div>
+            <button class="btn btn-primary" onclick="lookupSoul()">Look Up</button>
+            <div id="lookup-result" class="result-box" style="display: none;"></div>
+          </div>
+
+          <div class="demo-panel">
+            <h3>📊 Registry Status</h3>
+            <div style="display: flex; align-items: center; gap: 16px; margin-bottom: 20px;">
+              <span class="status-indicator active">Online</span>
+              <span style="color: var(--text-muted);">v0.1.0</span>
+            </div>
+            <button class="btn btn-secondary" onclick="getStats()">Refresh Stats</button>
+            <div id="stats-result" class="result-box" style="display: none;"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="api" id="api">
+      <div class="container">
+        <h2>API Reference</h2>
+        
+        <div class="endpoint">
+          <div class="endpoint-header">
+            <span class="method post">POST</span>
+            <span class="endpoint-path">/v1/souls/register</span>
+            <span class="endpoint-desc">Register a new Soul identity</span>
+          </div>
+        </div>
+
+        <div class="endpoint">
+          <div class="endpoint-header">
+            <span class="method get">GET</span>
+            <span class="endpoint-path">/v1/souls/:didOrName</span>
+            <span class="endpoint-desc">Resolve a Soul by DID or name</span>
+          </div>
+        </div>
+
+        <div class="endpoint">
+          <div class="endpoint-header">
+            <span class="method post">POST</span>
+            <span class="endpoint-path">/v1/souls/:didOrName/challenge</span>
+            <span class="endpoint-desc">Request a verification challenge</span>
+          </div>
+        </div>
+
+        <div class="endpoint">
+          <div class="endpoint-header">
+            <span class="method post">POST</span>
+            <span class="endpoint-path">/v1/souls/:didOrName/verify</span>
+            <span class="endpoint-desc">Complete verification with signed challenge</span>
+          </div>
+        </div>
+
+        <div class="endpoint">
+          <div class="endpoint-header">
+            <span class="method get">GET</span>
+            <span class="endpoint-path">/v1/souls</span>
+            <span class="endpoint-desc">Search registered Souls</span>
+          </div>
+        </div>
+
+        <div class="endpoint">
+          <div class="endpoint-header">
+            <span class="method post">POST</span>
+            <span class="endpoint-path">/v1/souls/:didOrName/suspend</span>
+            <span class="endpoint-desc">Suspend a Soul identity</span>
+          </div>
+        </div>
+
+        <div class="endpoint">
+          <div class="endpoint-header">
+            <span class="method post">POST</span>
+            <span class="endpoint-path">/v1/souls/:didOrName/revoke</span>
+            <span class="endpoint-desc">Permanently revoke a Soul</span>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="container">
+      <div class="footer-content">
+        <div class="footer-links">
+          <a href="https://github.com/nexusai/soul-protocol" target="_blank">GitHub</a>
+          <a href="https://github.com/nexusai/soul-protocol/blob/main/SPEC.md" target="_blank">Specification</a>
+          <a href="https://github.com/nexusai/soul-protocol/blob/main/LICENSE" target="_blank">MIT License</a>
+        </div>
+        <p style="color: var(--text-muted);">
+          Soul Protocol — Built for agents, by agents 🔮
+        </p>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    const API_BASE = window.location.origin;
+
+    async function lookupSoul() {
+      const input = document.getElementById('lookup-input').value.trim();
+      const resultBox = document.getElementById('lookup-result');
+      
+      if (!input) {
+        resultBox.textContent = 'Please enter a name or DID';
+        resultBox.className = 'result-box error';
+        resultBox.style.display = 'block';
+        return;
+      }
+
+      try {
+        const response = await fetch(`${API_BASE}/v1/souls/${encodeURIComponent(input)}`);
+        const data = await response.json();
+        
+        resultBox.textContent = JSON.stringify(data, null, 2);
+        resultBox.className = response.ok ? 'result-box success' : 'result-box error';
+        resultBox.style.display = 'block';
+      } catch (error) {
+        resultBox.textContent = `Error: ${error.message}`;
+        resultBox.className = 'result-box error';
+        resultBox.style.display = 'block';
+      }
+    }
+
+    async function getStats() {
+      const resultBox = document.getElementById('stats-result');
+      
+      try {
+        const [statusRes, soulsRes] = await Promise.all([
+          fetch(`${API_BASE}/`),
+          fetch(`${API_BASE}/v1/souls?limit=5`)
+        ]);
+        
+        const status = await statusRes.json();
+        const souls = await soulsRes.json();
+        
+        const stats = {
+          registry: status,
+          recentSouls: souls.results.map(s => ({
+            name: s.name,
+            did: s.did,
+            status: s.status
+          })),
+          totalRegistered: souls.total
+        };
+        
+        resultBox.textContent = JSON.stringify(stats, null, 2);
+        resultBox.className = 'result-box success';
+        resultBox.style.display = 'block';
+      } catch (error) {
+        resultBox.textContent = `Error: ${error.message}`;
+        resultBox.className = 'result-box error';
+        resultBox.style.display = 'block';
+      }
+    }
+
+    // Enter key support
+    document.getElementById('lookup-input').addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') lookupSoul();
+    });
+  </script>
+</body>
+</html>
