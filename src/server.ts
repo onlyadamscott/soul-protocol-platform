@@ -10,10 +10,12 @@ import {
   VerifyRequestSchema,
   SearchParamsSchema,
   StatusUpdateSchema,
+  ContactUpdateSchema,
   type SoulRecord,
   type RegisterResponse,
   type VerifyResponse,
   type SearchResponse,
+  type Contact,
 } from './types.js';
 
 // ============================================
@@ -57,6 +59,7 @@ app.get('/v1', (c) => {
       resolve: 'GET /v1/souls/:didOrName',
       challenge: 'POST /v1/souls/:didOrName/challenge',
       verify: 'POST /v1/souls/:didOrName/verify',
+      contact: 'PUT /v1/souls/:didOrName/contact',
       search: 'GET /v1/souls',
     },
   });
@@ -162,6 +165,80 @@ app.get('/v1/souls/:didOrName', async (c) => {
   // Return public soul data (exclude internal fields)
   const { _registryId, _version, ...publicSoul } = soul;
   return c.json(publicSoul);
+});
+
+// ============================================
+// Contact Update (v2 - reachability)
+// ============================================
+
+app.put('/v1/souls/:didOrName/contact', async (c) => {
+  try {
+    const didOrName = decodeURIComponent(c.req.param('didOrName'));
+    const body = await c.req.json();
+    const parsed = ContactUpdateSchema.safeParse(body);
+
+    if (!parsed.success) {
+      return c.json({
+        error: 'Invalid request body',
+        code: 'INVALID_REQUEST',
+        details: parsed.error.issues,
+      }, 400);
+    }
+
+    const { contact, signature, timestamp } = parsed.data;
+
+    // Resolve soul
+    let soul: SoulRecord | null = null;
+    if (didOrName.startsWith('did:soul:')) {
+      soul = db.getSoulByDid(didOrName);
+    } else {
+      soul = db.getSoulByName(didOrName);
+    }
+
+    if (!soul) {
+      return c.json({
+        error: 'Soul not found',
+        code: 'NOT_FOUND',
+      }, 404);
+    }
+
+    // Check timestamp is recent (prevent replay attacks)
+    const timestampDate = new Date(timestamp);
+    const now = new Date();
+    const fiveMinutesAgo = new Date(now.getTime() - 5 * 60 * 1000);
+    if (timestampDate < fiveMinutesAgo) {
+      return c.json({
+        error: 'Timestamp too old (max 5 minutes)',
+        code: 'TIMESTAMP_EXPIRED',
+      }, 400);
+    }
+
+    // Verify signature: sign "contact-update:{did}:{timestamp}"
+    const message = `contact-update:${soul.did}:${timestamp}`;
+    const validSignature = await verifySignature(message, signature, soul.publicKey);
+    if (!validSignature) {
+      return c.json({
+        error: 'Invalid signature',
+        code: 'INVALID_SIGNATURE',
+      }, 401);
+    }
+
+    // Update contact info
+    db.updateSoulContact(soul.did, contact);
+
+    return c.json({
+      success: true,
+      did: soul.did,
+      contact,
+      updatedAt: now.toISOString(),
+    });
+  } catch (error) {
+    console.error('Contact update error:', error);
+    return c.json({
+      error: 'Internal server error',
+      code: 'INTERNAL_ERROR',
+    }, 500);
+  }
 });
 
 // ============================================

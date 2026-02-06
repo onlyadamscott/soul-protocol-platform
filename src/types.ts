@@ -22,6 +22,17 @@ export const BirthCertificateSchema = z.object({
 });
 export type BirthCertificate = z.infer<typeof BirthCertificateSchema>;
 
+// Contact/reachability information (v2 - from SixerDemon's feedback)
+export const ContactSchema = z.object({
+  email: z.string().email().optional(),
+  inbox: z.string().url().optional(),           // Generic inbox URL
+  agentmail: z.string().optional(),             // AgentMail address if applicable
+  webhook: z.string().url().optional(),         // Webhook for async messages
+  protocols: z.array(z.string()).optional(),    // Supported protocols: ['email', 'agentmail', 'webhook', 'matrix', etc.]
+  preferred: z.string().optional(),             // Preferred contact method
+});
+export type Contact = z.infer<typeof ContactSchema>;
+
 // Soul document (what gets registered)
 export const SoulDocumentSchema = z.object({
   did: DidSchema,
@@ -31,6 +42,7 @@ export const SoulDocumentSchema = z.object({
   avatar: z.string().optional(),
   description: z.string().max(500).optional(),
   website: z.string().url().optional(),
+  contact: ContactSchema.optional(),  // v2: reachability info
 });
 export type SoulDocument = z.infer<typeof SoulDocumentSchema>;
 
@@ -112,6 +124,14 @@ export const StatusUpdateSchema = z.object({
   signature: z.string().min(1),
 });
 export type StatusUpdate = z.infer<typeof StatusUpdateSchema>;
+
+// Contact update request (v2)
+export const ContactUpdateSchema = z.object({
+  contact: ContactSchema,
+  signature: z.string().min(1),  // Sign: "contact-update:{did}:{timestamp}"
+  timestamp: z.string().datetime(),
+});
+export type ContactUpdate = z.infer<typeof ContactUpdateSchema>;
 
 // API Error
 export interface ApiError {

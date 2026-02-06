@@ -1,6 +1,6 @@
 import initSqlJs, { Database as SqlJsDatabase } from 'sql.js';
 import { readFileSync, writeFileSync, existsSync } from 'fs';
-import type { SoulRecord, Challenge, SoulStatus } from './types.js';
+import type { SoulRecord, Challenge, SoulStatus, Contact } from './types.js';
 
 // ============================================
 // Database Layer (using sql.js - pure JavaScript SQLite)
@@ -50,6 +50,7 @@ export class RegistryDB {
         avatar TEXT,
         description TEXT,
         website TEXT,
+        contact_json TEXT,
         status TEXT NOT NULL DEFAULT 'active',
         status_reason TEXT,
         status_changed_at TEXT,
@@ -101,9 +102,9 @@ export class RegistryDB {
       INSERT INTO souls (
         did, name, public_key,
         birth_timestamp, birth_operator, birth_base_model, birth_platform, birth_charter_hash,
-        avatar, description, website,
+        avatar, description, website, contact_json,
         status, registered_at, verification_count
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `, [
       soul.did,
       soul.name,
@@ -116,6 +117,7 @@ export class RegistryDB {
       soul.avatar || null,
       soul.description || null,
       soul.website || null,
+      soul.contact ? JSON.stringify(soul.contact) : null,
       soul.status,
       soul.registeredAt,
       soul.verificationCount,
@@ -227,6 +229,19 @@ export class RegistryDB {
     this.save();
   }
 
+  updateSoulContact(did: string, contact: Contact): boolean {
+    this.db.run(`
+      UPDATE souls 
+      SET contact_json = ?, 
+          version = version + 1, 
+          updated_at = datetime('now')
+      WHERE did = ?
+    `, [JSON.stringify(contact), did]);
+    
+    this.save();
+    return this.db.getRowsModified() > 0;
+  }
+
   private rowToSoul(columns: string[], values: unknown[]): SoulRecord {
     const row: Record<string, unknown> = {};
     columns.forEach((col: string, i: number) => {
@@ -247,6 +262,7 @@ export class RegistryDB {
       avatar: (row.avatar as string) || undefined,
       description: (row.description as string) || undefined,
       website: (row.website as string) || undefined,
+      contact: row.contact_json ? JSON.parse(row.contact_json as string) : undefined,
       status: row.status as SoulStatus,
       statusReason: (row.status_reason as string) || undefined,
       statusChangedAt: (row.status_changed_at as string) || undefined,
