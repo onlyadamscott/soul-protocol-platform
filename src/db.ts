@@ -51,6 +51,8 @@ export class RegistryDB {
         description TEXT,
         website TEXT,
         contact_json TEXT,
+        capabilities_json TEXT,
+        risk_level TEXT,
         status TEXT NOT NULL DEFAULT 'active',
         status_reason TEXT,
         status_changed_at TEXT,
@@ -102,9 +104,9 @@ export class RegistryDB {
       INSERT INTO souls (
         did, name, public_key,
         birth_timestamp, birth_operator, birth_base_model, birth_platform, birth_charter_hash,
-        avatar, description, website, contact_json,
+        avatar, description, website, contact_json, capabilities_json, risk_level,
         status, registered_at, verification_count
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `, [
       soul.did,
       soul.name,
@@ -118,6 +120,8 @@ export class RegistryDB {
       soul.description || null,
       soul.website || null,
       soul.contact ? JSON.stringify(soul.contact) : null,
+      soul.capabilities ? JSON.stringify(soul.capabilities) : null,
+      soul.riskLevel || null,
       soul.status,
       soul.registeredAt,
       soul.verificationCount,
@@ -242,6 +246,20 @@ export class RegistryDB {
     return this.db.getRowsModified() > 0;
   }
 
+  updateSoulCapabilities(did: string, capabilities: string[], riskLevel?: string): boolean {
+    this.db.run(`
+      UPDATE souls 
+      SET capabilities_json = ?, 
+          risk_level = ?,
+          version = version + 1, 
+          updated_at = datetime('now')
+      WHERE did = ?
+    `, [JSON.stringify(capabilities), riskLevel || null, did]);
+    
+    this.save();
+    return this.db.getRowsModified() > 0;
+  }
+
   private rowToSoul(columns: string[], values: unknown[]): SoulRecord {
     const row: Record<string, unknown> = {};
     columns.forEach((col: string, i: number) => {
@@ -263,6 +281,8 @@ export class RegistryDB {
       description: (row.description as string) || undefined,
       website: (row.website as string) || undefined,
       contact: row.contact_json ? JSON.parse(row.contact_json as string) : undefined,
+      capabilities: row.capabilities_json ? JSON.parse(row.capabilities_json as string) : undefined,
+      riskLevel: (row.risk_level as 'low' | 'medium' | 'high') || undefined,
       status: row.status as SoulStatus,
       statusReason: (row.status_reason as string) || undefined,
       statusChangedAt: (row.status_changed_at as string) || undefined,

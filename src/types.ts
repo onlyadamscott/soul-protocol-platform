@@ -33,6 +33,9 @@ export const ContactSchema = z.object({
 });
 export type Contact = z.infer<typeof ContactSchema>;
 
+// Capability declaration (v3 - compliance/transparency)
+export const CapabilitiesSchema = z.array(z.string().max(64)).max(50).optional();
+
 // Soul document (what gets registered)
 export const SoulDocumentSchema = z.object({
   did: DidSchema,
@@ -42,7 +45,9 @@ export const SoulDocumentSchema = z.object({
   avatar: z.string().optional(),
   description: z.string().max(500).optional(),
   website: z.string().url().optional(),
-  contact: ContactSchema.optional(),  // v2: reachability info
+  contact: ContactSchema.optional(),      // v2: reachability info
+  capabilities: CapabilitiesSchema,       // v3: what this agent can do
+  riskLevel: z.enum(['low', 'medium', 'high']).optional(),  // v3: self-declared risk
 });
 export type SoulDocument = z.infer<typeof SoulDocumentSchema>;
 
@@ -132,6 +137,15 @@ export const ContactUpdateSchema = z.object({
   timestamp: z.string().datetime(),
 });
 export type ContactUpdate = z.infer<typeof ContactUpdateSchema>;
+
+// Capabilities update request (v3)
+export const CapabilitiesUpdateSchema = z.object({
+  capabilities: z.array(z.string().max(64)).max(50),
+  riskLevel: z.enum(['low', 'medium', 'high']).optional(),
+  signature: z.string().min(1),  // Sign: "capabilities-update:{did}:{timestamp}"
+  timestamp: z.string().datetime(),
+});
+export type CapabilitiesUpdate = z.infer<typeof CapabilitiesUpdateSchema>;
 
 // API Error
 export interface ApiError {
